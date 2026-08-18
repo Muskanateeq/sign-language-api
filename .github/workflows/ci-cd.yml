@@ -1,0 +1,72 @@
+name: CI/CD - Sign Language API
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Default to read-only permissions. The Hugging Face token is supplied as a secret.
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Validate application and container
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source and Git LFS model
+        uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install CPU inference dependencies
+        run: pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
+
+      - name: Check Python syntax
+        run: python -m compileall -q app
+
+      - name: Verify model can load
+        run: |
+          python - <<'PY'
+          from app.config import get_settings
+          from app.predictor import SignLanguagePredictor
+
+          predictor = SignLanguagePredictor(get_settings())
+          predictor.load_model()
+          assert predictor.model is not None
+          print("Model loaded successfully for CI.")
+          PY
+
+      - name: Build Docker image
+        run: docker build --tag sign-language-api:ci .
+
+  deploy-to-hugging-face:
+    name: Deploy Docker Space to Hugging Face
+    needs: ci
+    # Deploy only after a successful push to main, never on pull requests.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source and Git LFS model
+        uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Sync repository to Hugging Face Space
+        uses: huggingface/hub-sync@v0.1.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: ${{ vars.HF_SPACE_ID }}
+          hf_token: ${{ secrets.HF_TOKEN }}
+          repo_type: space
+          space_sdk: docker

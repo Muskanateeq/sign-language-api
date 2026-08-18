@@ -1,0 +1,15 @@
+services:
+  sign-language-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sign-language-api:latest
+    container_name: sign-language-api
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    init: true

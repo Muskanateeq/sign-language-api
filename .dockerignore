@@ -1,0 +1,14 @@
+.git
+.gitignore
+.vm
+.venv
+__pycache__
+**/__pycache__
+*.py[cod]
+.pytest_cache
+.env
+.env.*
+Prompt for Codex CLI.md
+README.md
+uploads/*
+!uploads/.gitkeep
