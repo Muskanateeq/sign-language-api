@@ -62,6 +62,24 @@ jobs:
         with:
           lfs: true
 
+      - name: Validate Hugging Face deployment configuration
+        env:
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_SPACE_ID" ]; then
+            echo "::error::Missing GitHub Actions variable HF_SPACE_ID. Set it to your Hugging Face Space ID, for example: your-username/sign-language-api"
+            exit 1
+          fi
+          if ! [[ "$HF_SPACE_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+            echo "::error::HF_SPACE_ID must be in the form username/space-name. Received an invalid value."
+            exit 1
+          fi
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::Missing GitHub Actions secret HF_TOKEN. Add a Hugging Face write token."
+            exit 1
+          fi
+
       - name: Sync repository to Hugging Face Space
         uses: huggingface/hub-sync@v0.1.0
         with:
