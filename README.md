@@ -66,7 +66,7 @@ docker run --rm -p 8000:8000 --env-file .env --name sign-language-api sign-langu
 
 ## CI/CD: GitHub Actions to Hugging Face Spaces
 
-The workflow at `.github/workflows/ci-cd.yml` runs on each pull request and push to `main`. It validates Python syntax, loads the EfficientNet checkpoint, and builds the Docker image. A successful push to `main` then syncs this repository to a Hugging Face **Docker Space**.
+The workflow at `.github/workflows/ci-cd.yml` runs on each pull request and push to `main`. It validates Python syntax, loads the EfficientNet checkpoint, and builds the Docker image. A successful push to `main` then pushes this repository to an existing Hugging Face **Docker Space**, replacing its initial template with this project.
 
 Before your first push, create a Hugging Face access token with write access to the target Space. In the GitHub repository’s **Settings → Secrets and variables → Actions**, add:
 
@@ -77,7 +77,7 @@ Before your first push, create a Hugging Face access token with write access to 
 | Variable | `HF_USERNAME` | Alternative to `HF_SPACE_ID`: your Hugging Face username or organization |
 | Variable | `HF_SPACE_NAME` | Alternative to `HF_SPACE_ID`: your Space name, for example `sign-language-api` |
 
-Set either `HF_SPACE_ID`, or both `HF_USERNAME` and `HF_SPACE_NAME`. The workflow creates/syncs the target Space as a Docker Space. The front matter at the top of this README tells Hugging Face to route the Space to this FastAPI service on port `8000`.
+Set either `HF_SPACE_ID`, or both `HF_USERNAME` and `HF_SPACE_NAME`. Create the target Space once through the Hugging Face website and select **Docker** as its SDK. The workflow then syncs it. The front matter at the top of this README tells Hugging Face to route the Space to this FastAPI service on port `8000`.
 
 The model file is 16 MB, so Git LFS is required before you commit it:
 

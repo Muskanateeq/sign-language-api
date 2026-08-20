@@ -88,12 +88,16 @@ jobs:
             exit 1
           fi
           echo "space_id=$HF_SPACE_ID" >> "$GITHUB_OUTPUT"
+          echo "git_username=${HF_SPACE_ID%%/*}" >> "$GITHUB_OUTPUT"
 
-      - name: Sync repository to Hugging Face Space
-        uses: huggingface/hub-sync@v0.1.0
-        with:
-          github_repo_id: ${{ github.repository }}
-          huggingface_repo_id: ${{ steps.hf_config.outputs.space_id }}
-          hf_token: ${{ secrets.HF_TOKEN }}
-          repo_type: space
-          space_sdk: docker
+      # A Git push replaces the initial Hugging Face Space template with this
+      # repository's actual README, Dockerfile, application, and LFS model.
+      - name: Push source to Hugging Face Space
+        env:
+          HF_SPACE_ID: ${{ steps.hf_config.outputs.space_id }}
+          HF_GIT_USERNAME: ${{ steps.hf_config.outputs.git_username }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git remote add huggingface "https://${HF_GIT_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE_ID}"
+          # A new Space has its own template commit, so replace that branch.
+          git push --force huggingface HEAD:main
