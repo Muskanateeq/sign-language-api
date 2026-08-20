@@ -60,6 +60,8 @@ jobs:
       - name: Check out source and Git LFS model
         uses: actions/checkout@v6
         with:
+          # Hugging Face rejects force-pushes from GitHub's default shallow clone.
+          fetch-depth: 0
           lfs: true
 
       - name: Validate Hugging Face deployment configuration
