@@ -73,9 +73,11 @@ Before your first push, create a Hugging Face access token with write access to 
 | Type | Name | Value |
 | --- | --- | --- |
 | Secret | `HF_TOKEN` | Hugging Face write/fine-grained token scoped to the Space |
-| Variable | `HF_SPACE_ID` | Hugging Face Space ID, for example `your-hf-username/sign-language-api` |
+| Variable | `HF_SPACE_ID` | Optional complete Hugging Face Space ID, for example `your-hf-username/sign-language-api` |
+| Variable | `HF_USERNAME` | Alternative to `HF_SPACE_ID`: your Hugging Face username or organization |
+| Variable | `HF_SPACE_NAME` | Alternative to `HF_SPACE_ID`: your Space name, for example `sign-language-api` |
 
-The workflow creates/syncs the target Space as a Docker Space. The front matter at the top of this README tells Hugging Face to route the Space to this FastAPI service on port `8000`.
+Set either `HF_SPACE_ID`, or both `HF_USERNAME` and `HF_SPACE_NAME`. The workflow creates/syncs the target Space as a Docker Space. The front matter at the top of this README tells Hugging Face to route the Space to this FastAPI service on port `8000`.
 
 The model file is 16 MB, so Git LFS is required before you commit it:
 

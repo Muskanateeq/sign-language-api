@@ -63,12 +63,20 @@ jobs:
           lfs: true
 
       - name: Validate Hugging Face deployment configuration
+        id: hf_config
         env:
           HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+          HF_USERNAME: ${{ vars.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ vars.HF_SPACE_NAME }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          # Prefer a complete ID when configured; otherwise build it from the
+          # separate variables already used by this repository.
+          if [ -z "$HF_SPACE_ID" ] && [ -n "$HF_USERNAME" ] && [ -n "$HF_SPACE_NAME" ]; then
+            HF_SPACE_ID="$HF_USERNAME/$HF_SPACE_NAME"
+          fi
           if [ -z "$HF_SPACE_ID" ]; then
-            echo "::error::Missing GitHub Actions variable HF_SPACE_ID. Set it to your Hugging Face Space ID, for example: your-username/sign-language-api"
+            echo "::error::Set either HF_SPACE_ID (username/space-name), or both HF_USERNAME and HF_SPACE_NAME as GitHub Actions variables."
             exit 1
           fi
           if ! [[ "$HF_SPACE_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
@@ -79,12 +87,13 @@ jobs:
             echo "::error::Missing GitHub Actions secret HF_TOKEN. Add a Hugging Face write token."
             exit 1
           fi
+          echo "space_id=$HF_SPACE_ID" >> "$GITHUB_OUTPUT"
 
       - name: Sync repository to Hugging Face Space
         uses: huggingface/hub-sync@v0.1.0
         with:
           github_repo_id: ${{ github.repository }}
-          huggingface_repo_id: ${{ vars.HF_SPACE_ID }}
+          huggingface_repo_id: ${{ steps.hf_config.outputs.space_id }}
           hf_token: ${{ secrets.HF_TOKEN }}
           repo_type: space
           space_sdk: docker
